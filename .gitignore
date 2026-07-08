@@ -37,3 +37,4 @@ media/
 docs/to_claude/
 logs/
 .playwright-cli/
+.worktrees/
