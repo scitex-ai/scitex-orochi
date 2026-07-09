@@ -12,6 +12,19 @@ name: pr-ci
 #     matrix leg is not bound to the runner's system Python.
 # L5b .venv/bin on PATH (and explicit `.venv/bin/python` for clarity) so
 #     console scripts resolve without needing `uv run`.
+#
+# Reusable-workflow migration (2026-07-10 incident remediation, PR #69
+# pattern): only `tests` below converts to the centralized pytest-matrix
+# body (functionally equivalent on the pull_request trigger — always the
+# full 3-version matrix). `import-smoke` here is NOT converted: it
+# additionally smokes the `scitex-orochi --help` CLI entrypoint and the
+# `scitex-orochi-mcp`/`scitex-orochi-server` daemon entrypoints, which the
+# generic import-smoke.yml reusable does not cover — converting would
+# silently drop that PR-gating signal. `dep-hygiene-smoke` has no
+# reusable-workflow counterpart. `audit` is NOT converted for the same
+# reason as release-ci.yml (raw audit-all vs the canonical
+# tests/develop/test_audit.py gate, PR #436) — this one gates PR merges,
+# so a false-positive flood here would be worse than in release-ci.yml.
 
 on:
   pull_request:
@@ -87,45 +100,10 @@ jobs:
       - name: Import package
         run: .venv/bin/python -c "import scitex_orochi; print(scitex_orochi.__name__)"
 
-  tests:
-    name: pytest-matrix-on-ubuntu-py${{ matrix.python-version }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ${{ github.event_name == 'pull_request' && fromJson('["3.11", "3.12", "3.13"]') || fromJson('["3.12"]') }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Set up Python ${{ matrix.python-version }} (uv-managed)
-        run: uv python install ${{ matrix.python-version }}
-      - name: Create uv venv on this matrix Python
-        run: uv venv --python ${{ matrix.python-version }} .venv
-      - name: Install dependencies
-        # Fallback chain: prefer [all,dev] so optional-dep code paths
-        # get exercised. Falls back to [dev] then plain editable so a
-        # packaging hiccup doesn't strand CI.
-        run: |
-          uv pip install --python .venv/bin/python -e ".[all,dev]" \
-            || uv pip install --python .venv/bin/python -e ".[dev]" \
-            || uv pip install --python .venv/bin/python -e .
-      - name: Run tests
-        # PATH prepend so any test that subprocess-calls a console script
-        # finds it in .venv/bin/.
-        run: |
-          export PATH="$PWD/.venv/bin:$PATH"
-          .venv/bin/pytest tests/ --cov=src/scitex_orochi --cov-report=xml --cov-report=term
-      - name: Upload coverage to Codecov
-        if: always() && matrix.python-version == '3.12'
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          fail_ci_if_error: false
+  pytest-matrix:
+    # New required-status-check context: "pytest-matrix / pytest-matrix-on-ubuntu-py<X.YY>"
+    uses: scitex-ai/.github/.github/workflows/pytest-matrix.yml@main
+    secrets: inherit
 
   audit:
     name: audit
