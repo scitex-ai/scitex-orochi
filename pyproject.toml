@@ -90,6 +90,8 @@ all = [
     "fastmcp>=2.0",
     "scitex-agent-container>=0.21.3",
     "claude-code-telegrammer>=0.2.0",
+    "scitex-orochi[dev]",
+    "scitex-orochi[docs]",
 ]
 dev = [
     "aiosqlite>=0.20",
