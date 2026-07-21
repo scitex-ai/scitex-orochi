@@ -74,6 +74,12 @@ def _make_client(channels: list[str] | None = None) -> "OrochiClient":
 if _FASTMCP_AVAILABLE:
     mcp = FastMCP("orochi-mcp", version="0.1.0")
 
+    # §5 skills pair (skills_list / skills_get) — implemented in
+    # scitex_orochi._mcp_skills to keep this module inside the line budget.
+    from scitex_orochi._mcp_skills import register_skills_tools
+
+    register_skills_tools(mcp)
+
     @mcp.tool()
     async def orochi_send(channel: str, message: str) -> str:
         """Send a message to an Orochi channel."""

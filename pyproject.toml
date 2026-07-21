@@ -203,6 +203,28 @@ target-version = "py311"
 select = ["E", "F", "I", "W"]
 ignore = ["E501"]
 
+[tool.scitex_dev]
+# §6 MCP↔Python-API parity — curated-surface declaration (finer-grained
+# alternative to the blanket mcp_parity_exempt). Orochi's MCP tools mirror
+# hub/fleet operations (send/history/upload/quota/...), not a Python API
+# surface, so the parity check is scoped to exactly this declared set.
+# skills_list / skills_get are always permitted and are not listed.
+mcp_tools_allowlist = [
+  "orochi_send",
+  "orochi_who",
+  "orochi_history",
+  "orochi_subscribe",
+  "orochi_unsubscribe",
+  "orochi_channels",
+  "orochi_machine_status",
+  "orochi_upload",
+  "orochi_download",
+  "claude_account_status",
+  "quota_status",
+  "fleet_report_tool",
+  "state_query",
+]
+
 [tool.scitex_dev.audit]
 # PS-168 — Per-package secret + env-var prefix in GitHub Actions workflows.
 # `GH_PERSONAL_ACCESS_TOKEN` is the ecosystem-wide cross-cutting PAT used
