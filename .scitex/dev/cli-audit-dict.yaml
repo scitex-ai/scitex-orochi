@@ -1,0 +1,11 @@
+# cli-audit-dict.yaml — project-local token dict for `scitex-dev ecosystem
+# audit-cli` (§1d/§1f). Additive: extends the canonical catalog with
+# orochi-domain tokens; never reclassifies existing ones.
+nouns:
+  - cron           # unified cron daemon group (msg#16406 / msg#16410)
+  - hungry-signal  # idle-head DM probe group (scripts/client/hungry-signal.sh)
+  - todo           # fleet-coordination todo group (Phase 1c, msg#16477)
+verb_exceptions:   # §1f opt-outs — every entry needs a `# why`
+  - check  # why: pre-existing health-check verbs (host-identity/hungry-signal/chrome-watchdog); renaming to `validate` is a breaking CLI change deferred to the CLI-standardization wave
+  - setup  # why: `push setup-push` is a retained legacy compat alias; canonical form is `push setup` per the Phase 1d rename table
+  - show-status  # why: `server show-status` retained as a muscle-memory compat alias for the pre-rename flat `show-status`

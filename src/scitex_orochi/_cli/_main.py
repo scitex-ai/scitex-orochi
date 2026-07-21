@@ -63,8 +63,10 @@ class _HelpRecursiveGroup(click.Group):
 
 # Plan §11.2: the top-level ``--help`` output ends with a one-line
 # pointer at the noun-verb convention doc so fleet agents can grep
-# ``scitex-orochi --help`` and land on the skill directly.
+# ``scitex-orochi --help`` and land on the skill directly. The config
+# line documents the deployment-config fallback chain (doctrine §6b).
 _CLI_CONVENTION_EPILOG = (
+    "Config resolution: ./orochi-config.yaml, else ~/.scitex/orochi/config.yaml.\n\n"
     "See docs/cli.md for the noun-verb convention (scitex-orochi/convention-cli skill)."
 )
 
@@ -73,6 +75,9 @@ _CLI_CONVENTION_EPILOG = (
     cls=_HelpRecursiveGroup,
     context_settings={"help_option_names": ["-h", "--help"]},
     invoke_without_command=True,
+    # Doctrine §4 canonical opening line: `<cli> (vX.Y.Z) — <description>`,
+    # version resolved via importlib.metadata so it never drifts.
+    help=f"scitex-orochi (v{_get_version()}) — Agent Communication Hub CLI.",
     epilog=_CLI_CONVENTION_EPILOG,
 )
 @click.version_option(_get_version(), "-V", "--version", prog_name="scitex-orochi")
