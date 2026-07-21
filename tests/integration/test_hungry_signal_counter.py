@@ -18,7 +18,9 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
+import sys
 import textwrap
 from pathlib import Path
 
@@ -57,7 +59,39 @@ def _write_stub_sac(tmpdir: Path, orochi_subagent_count: int) -> Path:
         f"echo {json.dumps(json.dumps(payload))}\n"
     )
     stub.chmod(0o755)
+    _write_orochi_shim(bin_dir)
     return bin_dir
+
+
+def _write_orochi_shim(bin_dir: Path) -> None:
+    """Make ``scitex-orochi`` resolvable inside the probe regardless of PATH.
+
+    The probe script ``exec``s the ``scitex-orochi`` console script. CI
+    pytest bodies run ``.venv/bin/python -m pytest`` WITHOUT putting the
+    venv's bin/ on PATH, so a bare ``exec scitex-orochi`` fails with 127.
+    Resolve the entry point robustly — an existing console script via
+    ``shutil.which``, else the sibling of ``sys.executable`` (the venv
+    bin), else dispatch the CLI group through the running interpreter —
+    and drop a shim into the stub bin dir the probe already prepends to
+    PATH.
+    """
+    resolved = shutil.which("scitex-orochi")
+    if resolved is None:
+        candidate = Path(sys.executable).with_name("scitex-orochi")
+        if candidate.exists():
+            resolved = str(candidate)
+    shim = bin_dir / "scitex-orochi"
+    if resolved is not None:
+        shim.write_text(f'#!/usr/bin/env bash\nexec "{resolved}" "$@"\n')
+    else:
+        # Last resort: same interpreter, same CLI entry point as the
+        # console script (scitex_orochi._cli:main).
+        shim.write_text(
+            "#!/usr/bin/env bash\n"
+            f'exec "{sys.executable}" -c '
+            '"from scitex_orochi._cli import main; main()" "$@"\n'
+        )
+    shim.chmod(0o755)
 
 
 def _invoke(
