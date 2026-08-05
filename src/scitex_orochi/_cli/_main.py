@@ -23,6 +23,15 @@ def _get_version() -> str:
         return "dev"
 
 
+#: Root ``--help`` summary. CLI conventions §4 requires the opening line to
+#: name the CLI and its version: ``<cli> (vX.Y.Z) — <description>``. The
+#: version is resolved from installed metadata at import time, so a release
+#: cannot leave a stale literal behind in the help text.
+_ROOT_HELP = (
+    f"scitex-orochi (v{_get_version()}) — Agent Communication Hub CLI."
+)
+
+
 class _HelpRecursiveGroup(click.Group):
     """Click group that supports ``--help-recursive`` to dump every subcommand.
 
@@ -74,6 +83,13 @@ _CLI_CONVENTION_EPILOG = (
     context_settings={"help_option_names": ["-h", "--help"]},
     invoke_without_command=True,
     epilog=_CLI_CONVENTION_EPILOG,
+    # Canonical opening line (CLI conventions §4): `<cli> (vX.Y.Z) — <desc>`.
+    # Built from _get_version() rather than written as a literal so the
+    # displayed version cannot drift from the installed distribution — a
+    # hardcoded string here would go stale at the next release and nothing
+    # would notice. Passing `help=` overrides the function docstring, which
+    # is why the docstring below no longer carries the summary.
+    help=_ROOT_HELP,
 )
 @click.version_option(_get_version(), "-V", "--version", prog_name="scitex-orochi")
 @click.option(
@@ -111,7 +127,13 @@ def orochi(
     help_recursive: bool,
     as_json: bool,
 ) -> None:
-    """scitex-orochi -- Agent Communication Hub CLI."""
+    """Root command group.
+
+    The user-facing summary lives in ``_ROOT_HELP`` and is passed via the
+    group's ``help=`` so it can carry the running version (CLI conventions
+    §4). Click prefers ``help=`` over this docstring, so keeping a second
+    copy of the summary here would create two sources for one string.
+    """
     from scitex_orochi._config import HOST, PORT
 
     ctx.ensure_object(dict)
