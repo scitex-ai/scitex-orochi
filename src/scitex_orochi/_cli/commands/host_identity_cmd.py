@@ -75,7 +75,11 @@ def show(ctx: click.Context, as_json: bool) -> None:
 )
 @click.option("--force", is_flag=True, help="Overwrite an existing file.")
 def init(extra_aliases: tuple[str, ...], force: bool) -> None:
-    """Create ~/.scitex/orochi/host-identity.yaml seeded with defaults."""
+    """Create ~/.scitex/orochi/host-identity.yaml seeded with defaults.
+
+    Example:
+      $ scitex-orochi host-identity init --alias my-laptop
+    """
     if HOST_IDENTITY_PATH.exists() and not force:
         click.echo(
             f"Refusing to overwrite {HOST_IDENTITY_PATH} (use --force).",
@@ -111,7 +115,11 @@ def init(extra_aliases: tuple[str, ...], force: bool) -> None:
 @click.argument("host")
 @click.pass_context
 def check(ctx: click.Context, host: str) -> None:
-    """Report whether HOST resolves as local or remote on this machine."""
+    """Report whether HOST resolves as local or remote on this machine.
+
+    Example:
+      $ scitex-orochi host-identity check ywata-note-win
+    """
     reset_cache()
     local = is_local(host)
     if ctx.obj.get("json"):

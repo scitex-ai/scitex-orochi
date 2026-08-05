@@ -26,7 +26,11 @@ def skills() -> None:
 @skills.command("list")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
 def skills_list(as_json: bool) -> None:
-    """List available skill pages."""
+    """List available skill pages.
+
+    Example:
+      $ scitex-orochi skills list --json
+    """
     import json
 
     if not SKILLS_DIR.exists():

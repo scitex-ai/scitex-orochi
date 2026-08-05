@@ -33,7 +33,11 @@ _DOC_PAGES = {
 @docs.command("list")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
 def docs_list(as_json: bool) -> None:
-    """List available documentation pages."""
+    """List available documentation pages.
+
+    Example:
+      $ scitex-orochi docs list --json
+    """
     import json
 
     entries = []
