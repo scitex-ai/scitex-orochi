@@ -74,11 +74,17 @@ def show(ctx: click.Context, as_json: bool) -> None:
     help="Additional alias to record (repeatable, e.g. SSH alias).",
 )
 @click.option("--force", is_flag=True, help="Overwrite an existing file.")
-def init(extra_aliases: tuple[str, ...], force: bool) -> None:
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Print the file that would be written, then exit without writing it.",
+)
+def init(extra_aliases: tuple[str, ...], force: bool, dry_run: bool) -> None:
     """Create ~/.scitex/orochi/host-identity.yaml seeded with defaults.
 
     Example:
-      $ scitex-orochi host-identity init --alias my-laptop
+      $ scitex-orochi host-identity init --alias my-laptop --dry-run
     """
     if HOST_IDENTITY_PATH.exists() and not force:
         click.echo(
@@ -97,7 +103,10 @@ def init(extra_aliases: tuple[str, ...], force: bool) -> None:
             *extra_aliases,
         }
     )
-    HOST_IDENTITY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    # mkdir moved DOWN to the write path. It used to run here, before the
+    # content was even built — which meant --dry-run would still create
+    # ~/.scitex/orochi/ on disk. A dry-run that leaves a directory behind is
+    # not a dry-run, and it is the exact side effect the flag exists to avoid.
     body = (
         "# scitex-orochi host-identity\n"
         "# Names that mean *this* machine. Add SSH aliases declared in\n"
@@ -105,6 +114,16 @@ def init(extra_aliases: tuple[str, ...], force: bool) -> None:
         "# to local execution instead of looping through SSH.\n"
         + yaml.safe_dump({"aliases": aliases}, sort_keys=False)
     )
+    # Preview AFTER the overwrite guard, deliberately: a dry-run must predict
+    # what the real run does, and the real run refuses on an existing file
+    # without --force. Previewing a write that would not happen would be a
+    # more comfortable output and a false one.
+    if dry_run:
+        click.echo(f"dry-run: no changes made; would write {HOST_IDENTITY_PATH}")
+        click.echo("--- content ---")
+        click.echo(body, nl=False)
+        return
+    HOST_IDENTITY_PATH.parent.mkdir(parents=True, exist_ok=True)
     HOST_IDENTITY_PATH.write_text(body)
     click.echo(f"Wrote {HOST_IDENTITY_PATH}")
     for a in aliases:
