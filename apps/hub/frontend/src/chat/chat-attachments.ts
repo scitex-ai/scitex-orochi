@@ -87,7 +87,7 @@ export function buildAttachmentsHtml(attachments) {
     imagesHtml +=
       '<div class="attachment-img"><a href="' +
       escapeHtml(att.url) +
-      '" target="_blank">' +
+      '" target="_blank" rel="noopener">' +
       '<img src="' +
       escapeHtml(att.url) +
       '" alt="' +
@@ -159,7 +159,7 @@ export function buildAttachmentsHtml(attachments) {
         JSON.stringify(fname).replace(/"/g, "&quot;") +
         ");else window.open(" +
         JSON.stringify(url).replace(/"/g, "&quot;") +
-        ",'_blank')\">" +
+        ",'_blank','noopener')\">" +
         '<div class="attachment-card-icon" data-pdf-thumb-url="' +
         escapeHtml(url) +
         '">PDF</div>' +
@@ -182,7 +182,7 @@ export function buildAttachmentsHtml(attachments) {
         '">' +
         '<div class="attachment-card-header"><a href="' +
         escapeHtml(url) +
-        '" target="_blank" download class="attachment-card-name">' +
+        '" target="_blank" rel="noopener" download class="attachment-card-name">' +
         escapeHtml(fname) +
         "</a>" +
         (sizeStr
@@ -219,7 +219,7 @@ export function buildAttachmentsHtml(attachments) {
     html +=
       '<div class="attachment-file"><a href="' +
       escapeHtml(url) +
-      '" target="_blank" download>' +
+      '" target="_blank" rel="noopener" download>' +
       "\uD83D\uDCCE " +
       escapeHtml(fname) +
       (sizeStr ? " (" + escapeHtml(sizeStr) + ")" : "") +
