@@ -378,6 +378,9 @@ def probe(
 
     Exits with the *worst* severity observed:
     ``0`` ok, ``1`` advisory, ``2`` warn, ``3`` critical.
+
+    Example:
+      $ scitex-orochi host-liveness probe --yes
     """
     dry_run = not yes  # --yes overrides --dry-run
     del dry_run_flag  # we just need yes to flip the mode

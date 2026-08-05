@@ -73,7 +73,11 @@ def chrome_watchdog() -> None:
     help="Report only; never delete.",
 )
 def check(advise_gib: int, reap_gib: int, dry_run: bool) -> None:
-    """Advise/reap the Chrome codesign-clone cache. Safe on non-macOS hosts."""
+    """Advise/reap the Chrome codesign-clone cache. Safe on non-macOS hosts.
+
+    Example:
+      $ scitex-orochi chrome-watchdog check
+    """
     if platform.system() != "Darwin":
         _log("not macOS — no-op")
         sys.exit(0)

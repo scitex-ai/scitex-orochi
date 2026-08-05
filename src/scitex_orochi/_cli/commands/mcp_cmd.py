@@ -29,7 +29,10 @@ def mcp() -> None:
     """Group for MCP-related verbs. Only ``start`` is implemented in Step A."""
 
 
-@mcp.command("start", help="Start the stdio MCP server (same as scitex-orochi-mcp).")
+# No `help=` here: Click prefers it over the docstring, and the docstring is
+# where the section-4 "Example:" block lives. An explicit help= silently made
+# that block unreachable.
+@mcp.command("start")
 def mcp_start() -> None:
     """Delegate to the canonical MCP entry-point.
 
@@ -37,6 +40,9 @@ def mcp_start() -> None:
     guards (SCITEX_OROCHI_DISABLE checks, env sanity), so we preserve
     that behaviour by calling its ``main()`` directly rather than
     re-implementing the glue here.
+
+    Example:
+      $ scitex-orochi mcp start
     """
     from scitex_orochi.mcp_server import main as _mcp_main
 

@@ -286,6 +286,9 @@ def check(
 ) -> None:
     """Run one hungry-signal cycle for this host. Silent no-op when
     ``$SCITEX_HUNGRY_DISABLED=1``.
+
+    Example:
+      $ scitex-orochi hungry-signal check --yes
     """
     del dry_run_flag
     dry_run = not yes
