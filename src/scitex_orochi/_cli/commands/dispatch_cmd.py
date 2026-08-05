@@ -138,6 +138,9 @@ def dispatch_run(
 
     Bypasses the heartbeat-path streak/cooldown gate. The head's
     ``AgentConsumer`` delivers it as a normal chat frame.
+
+    Example:
+      $ scitex-orochi dispatch run --head ywata-note-win
     """
     resolved = _resolve_token(token)
     body: dict[str, Any] = {"head": head, "reason": reason}

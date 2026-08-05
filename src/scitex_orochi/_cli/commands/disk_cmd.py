@@ -230,6 +230,9 @@ def reaper_dry_run(
 
     Equivalent to ``scripts/client/disk-reaper.sh`` (``--yes`` overrides
     ``--dry-run`` for flag-mutex parity).
+
+    Example:
+      $ scitex-orochi disk reaper-dry-run --yes
     """
     del dry_run_flag
     dry_run = not yes
@@ -351,7 +354,11 @@ def pressure_probe(
     critical_gib: int,
     out_dir: Path | None,
 ) -> None:
-    """Probe root-fs headroom and emit an NDJSON advisory."""
+    """Probe root-fs headroom and emit an NDJSON advisory.
+
+    Example:
+      $ scitex-orochi disk pressure-probe
+    """
     host = platform.node().split(".")[0]
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     out_dir = out_dir or Path(

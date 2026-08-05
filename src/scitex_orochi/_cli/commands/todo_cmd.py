@@ -333,6 +333,9 @@ def todo_next(
     """Pick the next todo for ``--lane``.
 
     Exits non-zero when nothing matches (so cron / subshells can branch).
+
+    Example:
+      $ scitex-orochi todo next --lane infrastructure
     """
     extra: list[int] = []
     for tok in (exclude or "").split(","):
@@ -383,17 +386,28 @@ def todo_next(
     show_default=True,
     help="Max issues to fetch.",
 )
+@click.option(
+    "--json",
+    "json_flag",
+    is_flag=True,
+    default=False,
+    help="Emit JSON. Also settable as the group-level `orochi --json todo triage`.",
+)
 @click.pass_context
 def todo_triage(
     ctx: click.Context,
     lane: str | None,
     repo: str,
     limit: int,
+    json_flag: bool,
 ) -> None:
     """Score every open todo on staleness + lane-fit + claimed + assigned.
 
     Output is a JSON array sorted by descending score. Use ``--json`` for
     machine-readable output; the human form is a ranked table.
+
+    Example:
+      $ scitex-orochi todo triage --lane infrastructure --json
     """
     issues = _fetch_open_todos(repo, limit=limit)
     prs = _fetch_open_prs(repo, limit=100)
@@ -405,7 +419,10 @@ def todo_triage(
     scored = [_score_issue(i, lane, claimed, now_ts) for i in issues]
     scored.sort(key=lambda row: row["score"], reverse=True)
 
-    as_json = bool(ctx.obj and ctx.obj.get("json"))
+    # The docstring above has always told users to "use --json", but the flag
+    # was only ever parsed by the root group, so `todo triage --json` failed
+    # with a usage error. OR the two so the documented form works.
+    as_json = json_flag or bool(ctx.obj and ctx.obj.get("json"))
     if as_json:
         click.echo(json.dumps(scored, indent=2))
         return
