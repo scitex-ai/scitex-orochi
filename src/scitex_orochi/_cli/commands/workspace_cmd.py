@@ -173,15 +173,45 @@ def _confirm_or_fail(workspace_id: str, yes: bool) -> None:
 @click.option(
     "--yes", is_flag=True, help="Skip confirmation (required non-interactive)."
 )
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Show the workspace that would be deleted, then exit without deleting.",
+)
 @click.pass_context
 def delete_workspace(
     ctx: click.Context,
     workspace_id: str,
     as_json: bool,
     yes: bool,
+    dry_run: bool,
 ) -> None:
-    """Delete a workspace by ID."""
+    """Delete a workspace by ID.
+
+    Example:
+      $ scitex-orochi delete-workspace ws_abc123 --dry-run
+    """
+    # Token check runs FIRST even under --dry-run: the real run fails without
+    # it, so a dry-run that skipped it would report a deletion that could not
+    # actually happen. Predicting success you cannot deliver is worse than
+    # failing early.
     _get_admin_token(ctx)
+    # Preview BEFORE the confirmation prompt — a dry-run must never block on
+    # input — and before the DELETE, which is the whole point.
+    if dry_run:
+        target = f"/api/workspaces/{workspace_id}"
+        if as_json:
+            click.echo(
+                json.dumps(
+                    {"dry_run": True, "would_delete": workspace_id, "endpoint": target},
+                    indent=2,
+                )
+            )
+        else:
+            click.echo("dry-run: no changes made")
+            click.echo(f"  would DELETE {target}")
+        return
     _confirm_or_fail(workspace_id, yes)
 
     result = _api_request(ctx, "DELETE", f"/api/workspaces/{workspace_id}")
