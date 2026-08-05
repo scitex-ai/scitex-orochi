@@ -27,9 +27,20 @@ def host_identity() -> None:
 
 
 @host_identity.command("show")
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    default=False,
+    help="Emit JSON. Also settable as the group-level `orochi --json show`.",
+)
 @click.pass_context
-def show(ctx: click.Context) -> None:
-    """Show the current host-identity (file + auto-derived defaults merged)."""
+def show(ctx: click.Context, as_json: bool) -> None:
+    """Show the current host-identity (file + auto-derived defaults merged).
+
+    Example:
+      $ scitex-orochi host-identity show --json
+    """
     reset_cache()
     data = load_host_identity()
     payload = {
@@ -39,7 +50,11 @@ def show(ctx: click.Context) -> None:
         "fqdn": socket.getfqdn(),
         "aliases": data["aliases"],
     }
-    if ctx.obj.get("json"):
+    # OR with the inherited group-level flag rather than replacing it: the
+    # group option only parses BEFORE the subcommand (`orochi --json
+    # host-identity show`), while users type it after. Both must work, and
+    # the two must not become independent sources for one signal.
+    if as_json or ctx.obj.get("json"):
         click.echo(json.dumps(payload, indent=2))
         return
     click.echo(f"path:     {payload['path']}")

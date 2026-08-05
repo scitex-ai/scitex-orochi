@@ -167,13 +167,28 @@ def cron_stop(uninstall: bool) -> None:
     default=None,
     help=f"Override state file (default: {default_state_path()}).",
 )
+@click.option(
+    "--json",
+    "json_flag",
+    is_flag=True,
+    default=False,
+    help="Emit JSON. Also settable as the group-level `orochi --json cron list`.",
+)
 @click.pass_context
-def cron_list(ctx: click.Context, state_path_str: str | None) -> None:
-    """Print each job's cadence + last run outcome + next run time."""
+def cron_list(
+    ctx: click.Context, state_path_str: str | None, json_flag: bool
+) -> None:
+    """Print each job's cadence + last run outcome + next run time.
+
+    Example:
+      $ scitex-orochi cron list --json
+    """
     state_path = Path(state_path_str) if state_path_str else default_state_path()
     state = state_read(state_path)
     jobs = render_cron_jobs(state)
-    as_json = bool(ctx.obj and ctx.obj.get("json"))
+    # OR with the inherited group flag — see host_identity_cmd.show for why:
+    # the group option only parses before the subcommand, users type it after.
+    as_json = json_flag or bool(ctx.obj and ctx.obj.get("json"))
     if as_json:
         click.echo(json.dumps(jobs, indent=2, default=str))
         return
@@ -296,13 +311,25 @@ def cron_run(
     default=None,
     help=f"Override state file (default: {default_state_path()}).",
 )
+@click.option(
+    "--json",
+    "json_flag",
+    is_flag=True,
+    default=False,
+    help="Emit JSON. Also settable as the group-level `orochi --json cron status`.",
+)
 @click.pass_context
 def cron_status(
     ctx: click.Context,
     pid_path_str: str | None,
     state_path_str: str | None,
+    json_flag: bool,
 ) -> None:
-    """Report whether the daemon is running + its PID + config location."""
+    """Report whether the daemon is running + its PID + config location.
+
+    Example:
+      $ scitex-orochi cron status --json
+    """
     pid_path = Path(pid_path_str) if pid_path_str else default_pid_path()
     state_path = Path(state_path_str) if state_path_str else default_state_path()
     pid, alive = _daemon_liveness(pid_path)
@@ -318,7 +345,7 @@ def cron_status(
         "log_dir": str(default_log_dir()),
         "job_count": len(state.jobs) if state else 0,
     }
-    as_json = bool(ctx.obj and ctx.obj.get("json"))
+    as_json = json_flag or bool(ctx.obj and ctx.obj.get("json"))
     if as_json:
         click.echo(json.dumps(payload, indent=2, default=str))
         return
