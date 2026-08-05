@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import click
@@ -67,14 +68,34 @@ def skills_list(as_json: bool) -> None:
 
 @skills.command("get")
 @click.argument("name")
-def skills_get(name: str) -> None:
-    """Show a skill page."""
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    default=False,
+    help="Emit the skill as JSON ({name, path, content}) instead of raw text.",
+)
+@click.pass_context
+def skills_get(ctx: click.Context, name: str, as_json: bool) -> None:
+    """Show a skill page.
+
+    Example:
+      $ scitex-orochi skills get autonomous --json
+    """
+    as_json = as_json or bool(ctx.obj and ctx.obj.get("json"))
     path = SKILLS_DIR / f"{name}.md"
+    # Non-zero on a miss, and the hint to stderr — see docs_cmd.docs_get for
+    # the reasoning: returning 0 here made `skills get typo && ...` continue
+    # as though the skill had been found.
     if not path.exists():
         click.echo(f"Skill not found: {name}", err=True)
-        click.echo("Run 'scitex-orochi skills list' to see available skills.")
+        click.echo("Run 'scitex-orochi skills list' to see available skills.", err=True)
+        raise SystemExit(1)
+    content = path.read_text(encoding="utf-8")
+    if as_json:
+        click.echo(json.dumps({"name": name, "path": str(path), "content": content}))
         return
-    click.echo(path.read_text(encoding="utf-8"))
+    click.echo(content)
 
 
 @skills.command("export")
