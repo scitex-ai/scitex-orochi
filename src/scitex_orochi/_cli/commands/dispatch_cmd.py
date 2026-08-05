@@ -196,17 +196,30 @@ def dispatch_run(
     default=None,
     help="Workspace token [$SCITEX_OROCHI_TOKEN].",
 )
+@click.option(
+    "--json",
+    "json_flag",
+    is_flag=True,
+    default=False,
+    help="Emit JSON. Also settable as the group-level `orochi --json dispatch status`.",
+)
 @click.pass_context
 def dispatch_status(
     ctx: click.Context,
     hub: str,
     token: str | None,
+    json_flag: bool,
 ) -> None:
-    """Show per-head auto-dispatch streak + cooldown state."""
+    """Show per-head auto-dispatch streak + cooldown state.
+
+    Example:
+      $ scitex-orochi dispatch status --json
+    """
     resolved = _resolve_token(token)
     url = hub.rstrip("/") + "/api/auto-dispatch/status/"
     status_code, payload = _http_json("GET", url, resolved)
-    as_json = bool(ctx.obj and ctx.obj.get("json"))
+    # OR with the inherited group flag — see host_identity_cmd.show.
+    as_json = json_flag or bool(ctx.obj and ctx.obj.get("json"))
     if status_code >= 400:
         if as_json:
             click.echo(

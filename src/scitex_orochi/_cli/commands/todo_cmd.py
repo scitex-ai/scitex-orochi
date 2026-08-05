@@ -237,14 +237,26 @@ def todo() -> None:
     show_default=True,
     help="Max issues to fetch.",
 )
+@click.option(
+    "--json",
+    "json_flag",
+    is_flag=True,
+    default=False,
+    help="Emit JSON. Also settable as the group-level `orochi --json todo list`.",
+)
 @click.pass_context
 def todo_list(
     ctx: click.Context,
     lane: str | None,
     repo: str,
     limit: int,
+    json_flag: bool,
 ) -> None:
-    """List open high-priority todos (optionally lane-filtered)."""
+    """List open high-priority todos (optionally lane-filtered).
+
+    Example:
+      $ scitex-orochi todo list --lane infrastructure --json
+    """
     issues = _fetch_open_todos(repo, limit=limit)
     if lane is not None:
         issues = [
@@ -252,7 +264,9 @@ def todo_list(
             for i in issues
             if lane in {(lab.get("name") or "").strip() for lab in (i.get("labels") or [])}
         ]
-    as_json = bool(ctx.obj and ctx.obj.get("json"))
+    # OR with the inherited group flag — the group option only parses before
+    # the subcommand, users type it after. See host_identity_cmd.show.
+    as_json = json_flag or bool(ctx.obj and ctx.obj.get("json"))
     # Default output is JSON array of the essentials.
     slim = [
         {
