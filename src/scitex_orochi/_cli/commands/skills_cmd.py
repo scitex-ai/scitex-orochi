@@ -104,14 +104,50 @@ def skills_get(ctx: click.Context, name: str, as_json: bool) -> None:
     default=None,
     help="Target directory (default: ~/.claude/skills/scitex/).",
 )
-def skills_export(target: str | None) -> None:
-    """Export skills to ~/.claude/skills/scitex/."""
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Show what would be removed and copied, then exit without touching disk.",
+)
+@click.option(
+    "--yes",
+    "-y",
+    "yes",
+    is_flag=True,
+    default=False,
+    help="Skip the overwrite confirmation (required when running non-interactively).",
+)
+def skills_export(target: str | None, dry_run: bool, yes: bool) -> None:
+    """Export skills to ~/.claude/skills/scitex/.
+
+    Example:
+      $ scitex-orochi skills export --target ~/.claude/skills/scitex --dry-run
+    """
     import shutil
+    import sys
 
     dest = Path(target) if target else Path.home() / ".claude" / "skills" / "scitex"
-    dest.mkdir(parents=True, exist_ok=True)
     orochi_dest = dest / "scitex-orochi"
-    if orochi_dest.exists():
+    # This command DELETES a directory tree at a caller-supplied path
+    # (`--target ~/` removes ~/scitex-orochi). Constitution: "dry-run every
+    # bulk operation ... any change whose blast radius you cannot enumerate in
+    # advance". Enumerate it before doing it, and never inside the same run
+    # that performs it.
+    will_remove = orochi_dest.exists()
+    if dry_run:
+        click.echo("dry-run: no changes made")
+        click.echo(f"  would remove: {orochi_dest}" if will_remove else "  would remove: (nothing)")
+        click.echo(f"  would copy:   {SKILLS_DIR} -> {orochi_dest}")
+        return
+    # Confirm ONLY when a destructive removal is actually pending AND someone
+    # is there to answer. Prompting unconditionally would hang every scripted
+    # caller; not prompting at all makes --yes decorative. isatty is what keeps
+    # this additive rather than a breaking change.
+    if will_remove and not yes and sys.stdin.isatty():
+        click.confirm(f"Remove and replace {orochi_dest}?", abort=True)
+    dest.mkdir(parents=True, exist_ok=True)
+    if will_remove:
         shutil.rmtree(orochi_dest)
     shutil.copytree(SKILLS_DIR, orochi_dest)
     click.echo(f"Exported skills to {orochi_dest}")
