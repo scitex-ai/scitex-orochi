@@ -104,7 +104,11 @@ def cron() -> None:
     help="Skip migration of legacy per-job units.",
 )
 def cron_start(dry_run: bool, no_migrate: bool) -> None:
-    """Install + load the cron daemon via install-orochi-cron.sh."""
+    """Install + load the cron daemon via install-orochi-cron.sh.
+
+    Example:
+      $ scitex-orochi cron start --dry-run
+    """
     installer = _repo_root() / "scripts" / "client" / "install-orochi-cron.sh"
     if not installer.is_file():
         raise click.ClickException(
@@ -132,7 +136,11 @@ def cron_start(dry_run: bool, no_migrate: bool) -> None:
     help="Also remove the unit file (so `cron start` reinstalls from template).",
 )
 def cron_stop(uninstall: bool) -> None:
-    """Unload the cron daemon. ``--uninstall`` additionally removes the unit file."""
+    """Unload the cron daemon. ``--uninstall`` additionally removes the unit file.
+
+    Example:
+      $ scitex-orochi cron stop --uninstall
+    """
     installer = _repo_root() / "scripts" / "client" / "install-orochi-cron.sh"
     if uninstall:
         if not installer.is_file():
@@ -252,6 +260,9 @@ def cron_run(
 
     Doesn't go through the daemon loop — you can test a new command
     before installing the daemon.
+
+    Example:
+      $ scitex-orochi cron run nightly-sync --dry-run
     """
     daemon = CronDaemon(
         config_path=Path(config_path) if config_path else None,
@@ -391,7 +402,11 @@ def _daemon_liveness(pid_path: Path) -> tuple[int, bool]:
     help=f"Override PID file (default: {default_pid_path()}).",
 )
 def cron_reload(pid_path_str: str | None) -> None:
-    """Signal the daemon to re-read cron.yaml (SIGHUP)."""
+    """Signal the daemon to re-read cron.yaml (SIGHUP).
+
+    Example:
+      $ scitex-orochi cron reload
+    """
     pid_path = Path(pid_path_str) if pid_path_str else default_pid_path()
     pid, alive = _daemon_liveness(pid_path)
     if not alive:
