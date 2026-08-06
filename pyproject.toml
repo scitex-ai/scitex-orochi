@@ -86,10 +86,39 @@ telegram = ["claude-code-telegrammer>=0.2.0"]
 # ``pip install scitex-orochi[all]`` gives a working hub. Listed flat
 # (not recursive ``scitex-orochi[mcp]`` references) to avoid the pip
 # resolver deadlock DJ-502 warns about.
+#
+# CLOSURE (PS-221): every PUBLIC extra must be a SUBSET of ``all``, so
+# ``pip install scitex-orochi[all]`` never silently under-installs a
+# feature the user asked for by doing the documented "give me everything"
+# thing. That includes ``dev`` and ``docs``: they are public extras, so
+# either they are closed under ``all`` or they must stop being public.
+# They cannot stop being public here — six CI call sites install
+# ``.[dev]`` (test.yml x2, release-ci.yml x2, pr-ci.yml x2, plus
+# .github/ci/run-in-sif.sh) — so closure is the remedy.
+#
+# Kept FLAT rather than switching to the ``scitex-orochi[dev,docs]``
+# self-reference that scitex-dev / scitex-logging / scitex-scholar use:
+# the flat form is equally valid under PS-221, and the resolver-deadlock
+# reason above is this package's own and still stands. Cost of flat:
+# these entries must be kept in sync with ``dev``/``docs`` by hand.
 all = [
     "fastmcp>=2.0",
     "scitex-agent-container>=0.21.3",
     "claude-code-telegrammer>=0.2.0",
+    # --- mirrored from [dev] (keep in sync) ---
+    "aiosqlite>=0.20",
+    "deepeval>=1.0",
+    "pytest-asyncio",
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "scitex-dev>=0.15.0",
+    "websockets>=12.0",
+    # --- mirrored from [docs] (keep in sync) ---
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "myst-parser>=2.0",
+    "sphinx-copybutton>=0.5",
+    "sphinx-autodoc-typehints>=1.25",
 ]
 dev = [
     "aiosqlite>=0.20",
