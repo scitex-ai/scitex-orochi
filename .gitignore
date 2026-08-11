@@ -39,3 +39,12 @@ logs/
 .playwright-cli/
 .worktrees/
 .claude-pending-parked-*/
+
+# direnv. This file carries CCT_BOT_TOKEN, so it is a credential slot by
+# design even on the days its value happens to be indirected. Ignored for
+# the same reason claude-code-telegrammer ignores its own .envrc: the risk
+# is not what the file holds today, it is that a literal lands in it later
+# and nothing is watching. sac now resolves the bot token from the fleet
+# pool (CCT_BOT_TOKEN_<SLOT> via SAC_SECRETS_ENVRC), so a per-project
+# .envrc is machine-local convenience, not shared configuration.
+.envrc
