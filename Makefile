@@ -515,17 +515,17 @@ prod-shell:
 		docker exec -it orochi-server-stable python manage.py shell'
 
 # Purge Cloudflare cache for scitex-orochi.com.
-# Requires SCITEX_CLOUDFLARE_EMAIL + SCITEX_CLOUDFLARE_API_KEY in env
-# (sourced from ~/.dotfiles/src/.bash.d/secrets/).
+# Requires the scoped SCITEX_CLOUDFLARE_API_TOKEN (Cache Purge on
+# scitex-orochi.com) in env: `secrets-load cloudflare`. The Global API key is
+# not used: it can do anything on the account and is being retired.
 prod-cf-purge:
-	@if [ -z "$$SCITEX_CLOUDFLARE_API_KEY" ] || [ -z "$$SCITEX_CLOUDFLARE_EMAIL" ]; then \
-		echo -e "$(RED)SCITEX_CLOUDFLARE_API_KEY / EMAIL not set in env$(NC)"; \
+	@if [ -z "$$SCITEX_CLOUDFLARE_API_TOKEN" ]; then \
+		echo -e "$(RED)SCITEX_CLOUDFLARE_API_TOKEN not set in env (run: secrets-load cloudflare)$(NC)"; \
 		exit 1; \
 	fi
 	@echo -e "$(CYAN)Purging Cloudflare cache for scitex-orochi.com…$(NC)"
 	@curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$(CF_ZONE_OROCHI)/purge_cache" \
-		-H "X-Auth-Email: $$SCITEX_CLOUDFLARE_EMAIL" \
-		-H "X-Auth-Key: $$SCITEX_CLOUDFLARE_API_KEY" \
+		-H "Authorization: Bearer $$SCITEX_CLOUDFLARE_API_TOKEN" \
 		-H "Content-Type: application/json" \
 		--data '{"purge_everything":true}' | head -c 200
 	@echo ""
