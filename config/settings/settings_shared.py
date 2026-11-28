@@ -181,7 +181,6 @@ MIDDLEWARE = [
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "apps.hub.backends.SciTexRemoteBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
@@ -315,6 +314,8 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     },
     "scitex": {
+        # scitex.ai requires PKCE on its OAuth provider.
+        "OAUTH_PKCE_ENABLED": True,
         "APP": {
             "client_id": os.environ.get("SCITEX_OROCHI_SCITEX_CLIENT_ID", ""),
             "secret": os.environ.get("SCITEX_OROCHI_SCITEX_SECRET", ""),
